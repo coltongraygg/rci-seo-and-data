@@ -1,0 +1,102 @@
+{
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Rotolo Consultants, Inc.",
+    "alternateName": "RCI",
+    "url": "https://www.rotoloconsultants.com",
+    "logo": "https://cdn.prod.website-files.com/68074328072a3cbd8aab2d54/682c3cdd4d19143159b2e220_RCI%20LOGO.svg",
+    "description": "Rotolo Consultants, Inc. (RCI) is a full-service landscape construction, maintenance, and design firm serving the Southeastern United States. RCI specializes in commercial landscaping, resort and casino properties, municipal and HOA landscape design, aquatic and hardscape installation, and disaster recovery services. The company employs in-house licensed landscape architects and certified horticulturists to ensure design integrity and project execution at scale.",
+    "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Slidell",
+        "addressRegion": "LA",
+        "postalCode": "70458",
+        "addressCountry": "USA"
+    },
+    "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+1-800-641-2427",
+        "contactType": "Project Inquiries",
+        "email": "info@rotoloconsultants.com"
+    },
+    "sameAs": [
+        "https://www.linkedin.com/company/rotoloconsultants/",
+        "https://www.facebook.com/RotoloConsultants/",
+        "https://www.instagram.com/rotoloconsultantsinc/?hl=en"
+    ],
+    "foundingDate": "1978",
+    "areaServed": [
+        "USA",
+        "Louisiana",
+        "Texas",
+        "Mississippi",
+        "Alabama",
+        "Florida",
+        "Georgia",
+        "South Carolina",
+        "Tennessee"
+    ],
+    "keywords": [
+        "landscape maintenance",
+        "commercial landscaping",
+        "resort landscaping",
+        "casino landscape contractors",
+        "HOA landscaping services",
+        "municipal landscaping",
+        "landscape construction",
+        "design-build landscaping",
+        "aquatic landscaping",
+        "pool and fountain construction",
+        "hardscape contractors Southeast USA",
+        "licensed landscape architects Louisiana",
+        "disaster relief landscaping",
+        "storm recovery landscape services",
+        "high-end landscape architecture"
+    ],
+    "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "RCI Services",
+        "itemListElement": [
+            {
+                "@type": "Offer",
+                "itemOffered": {
+                    "@type": "Service",
+                    "name": "Landscape Maintenance",
+                    "description": "Routine, seasonal, and comprehensive landscape maintenance services for commercial, resort, HOA, casino, and municipal properties."
+                }
+            },
+            {
+                "@type": "Offer",
+                "itemOffered": {
+                    "@type": "Service",
+                    "name": "Landscape Construction",
+                    "description": "Full-scope landscape construction including grading, drainage, turf, planting, and infrastructure coordination using a design-build approach."
+                }
+            },
+            {
+                "@type": "Offer",
+                "itemOffered": {
+                    "@type": "Service",
+                    "name": "Aquatics and Hardscape Construction",
+                    "description": "Custom pools, fountains, retaining walls, and hardscape features for high-traffic commercial, entertainment, and hospitality projects."
+                }
+            },
+            {
+                "@type": "Offer",
+                "itemOffered": {
+                    "@type": "Service",
+                    "name": "Landscape Design Services",
+                    "description": "In-house licensed landscape architects and horticulturists delivering end-to-end design services for large-scale public and private developments."
+                }
+            },
+            {
+                "@type": "Offer",
+                "itemOffered": {
+                    "@type": "Service",
+                    "name": "Disaster Relief Landscaping",
+                    "description": "Rapid-response cleanup, stabilization, and post-storm landscape recovery for municipal and private properties across the Southeast."
+                }
+            }
+        ]
+    }
+}
