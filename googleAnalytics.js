@@ -46,8 +46,8 @@ if (window._ga4FormTrackingInitialized) {
   // Track which forms have already sent events to prevent duplicates
   const formSubmissionTracker = new Map();
 
-// Wait for DOM to be ready
-function initFormTracking() {
+  // Wait for DOM to be ready
+  function initFormTracking() {
   debugLog('Initializing form tracking...');
   
   // Find all forms on the page
@@ -55,6 +55,8 @@ function initFormTracking() {
   debugLog(`Found ${forms.length} forms on the page`);
   
   forms.forEach((form, index) => {
+    const formKey = form.id || `form_${index}`;
+    
     debugLog(`Form ${index}:`, {
       id: form.id,
       className: form.className,
@@ -63,8 +65,32 @@ function initFormTracking() {
       fields: form.elements.length
     });
     
+    // Check if this form already has a visible success message (Webflow quirk)
+    const existingSuccessElements = [
+      ...form.querySelectorAll('.w-form-done'),
+      ...form.parentElement?.querySelectorAll('.w-form-done') || []
+    ];
+    
+    const hasVisibleSuccess = existingSuccessElements.some(el => {
+      const style = window.getComputedStyle(el);
+      return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+    });
+    
+    if (hasVisibleSuccess) {
+      debugLog(`⚠️ Form ${index} has pre-existing visible success state, requiring user interaction for tracking`);
+    }
+    
     // Method 1: Traditional submit event listener
     form.addEventListener('submit', function(e) {
+      // Check if we've already tracked this submission
+      const now = Date.now();
+      const lastSubmission = formSubmissionTracker.get(formKey + '_submit');
+      if (lastSubmission && (now - lastSubmission) < 1000) {
+        debugLog('Duplicate form submit event detected, skipping');
+        return;
+      }
+      formSubmissionTracker.set(formKey + '_submit', now);
+      
       debugLog(`Form submit event fired for form ${index}`, {
         formId: form.id,
         formClass: form.className,
@@ -85,19 +111,66 @@ function initFormTracking() {
     
     // Method 2: Webflow success state detection
     // Webflow typically adds classes like 'w-form-done' or changes display styles
+    // Track if we've seen a user interaction with this form
+    let hasUserInteracted = false;
+    let formSubmittedViaButton = false;
+    
+    // Mark form as interacted when user clicks or submits
+    form.addEventListener('click', () => { hasUserInteracted = true; });
+    form.addEventListener('focusin', () => { hasUserInteracted = true; });
+    form.addEventListener('submit', () => { formSubmittedViaButton = true; });
+    
+    // For forms with pre-existing success states, require actual submission
+    const requiresActualSubmission = hasVisibleSuccess;
+    
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
-        if (mutation.type === 'attributes') {
+        // For problematic forms, only track if form was actually submitted
+        if (requiresActualSubmission && !formSubmittedViaButton) {
+          debugLog(`❌ Blocking success tracking for form ${index} - requires actual submission but none detected`);
+          return;
+        }
+        
+        // For normal forms, require user interaction
+        if (!requiresActualSubmission && !hasUserInteracted) {
+          debugLog(`❌ Blocking success tracking for form ${index} - no user interaction detected`);
+          return;
+        }
+        
+        if (mutation.type === 'attributes' || mutation.type === 'childList') {
           // Check for Webflow success indicators
           const target = mutation.target;
-          if (target.classList.contains('w-form-done') || 
-              target.style.display === 'block' && target.classList.contains('success-message') ||
-              target.classList.contains('w-form-success')) {
+          const isSuccessElement = target.classList.contains('w-form-done') || 
+                                  target.classList.contains('success-message') ||
+                                  target.classList.contains('w-form-success');
+          
+          // Check if this is a new success state (not pre-existing)
+          const isNewlyVisible = (mutation.type === 'attributes' && 
+                                 mutation.attributeName === 'style' && 
+                                 target.style.display === 'block') ||
+                                (mutation.type === 'attributes' && 
+                                 mutation.attributeName === 'class' && 
+                                 isSuccessElement);
+          
+          if (isSuccessElement && isNewlyVisible) {
+            // Check if we've already tracked this success
+            const now = Date.now();
+            const lastSuccess = formSubmissionTracker.get(formKey + '_success');
+            if (lastSuccess && (now - lastSuccess) < 2000) {
+              debugLog('Duplicate form success event detected, skipping');
+              return;
+            }
+            formSubmissionTracker.set(formKey + '_success', now);
             
-            debugLog('Webflow form success detected!', {
+            debugLog('✅ Webflow form success detected!', {
               element: target,
               classes: target.className,
-              formIndex: index
+              formIndex: index,
+              formId: form.id,
+              mutationType: mutation.type,
+              attributeName: mutation.attributeName,
+              hadPreExistingSuccess: requiresActualSubmission,
+              wasActuallySubmitted: formSubmittedViaButton
             });
             
             // Track successful submission
@@ -108,6 +181,8 @@ function initFormTracking() {
               page_path: window.location.pathname,
               method: 'webflow_success_detection'
             });
+            
+            debugLog(`📤 GA4 form_submit_success event sent for: ${form.id || `form_${index}`}`);
           }
         }
       });
@@ -182,20 +257,28 @@ function initFormTracking() {
   };
   
   debugLog('Form tracking initialization complete');
-}
+  
+  // Summary of form protection
+  debugLog('📊 Form Tracking Summary:');
+  debugLog(`- Total forms found: ${forms.length}`);
+  debugLog(`- Forms with pre-existing success states will require actual submission`);
+  debugLog(`- All form submissions will be logged before sending to GA4`);
+  debugLog('✅ Only real user form submissions will be tracked');
+  }
 
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initFormTracking);
-} else {
-  // DOM is already ready
-  initFormTracking();
-}
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initFormTracking);
+  } else {
+    // DOM is already ready
+    initFormTracking();
+  }
 
-// Also try to reinitialize after a delay in case Webflow adds forms dynamically
-setTimeout(initFormTracking, 2000);
+  // Also try to reinitialize after a delay in case Webflow adds forms dynamically
+  setTimeout(initFormTracking, 2000);
 
-debugLog('Form tracking script setup complete');
+  debugLog('Form tracking script setup complete');
+} // End of initialization check
 
 
 
